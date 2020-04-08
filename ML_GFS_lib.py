@@ -1,10 +1,11 @@
+# importing different libs that are needed
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
-import scipy.stats as stats
 
-plt.rcParams['figure.figsize'] = [40, 20]
+plt.rcParams['figure.figsize'] = [40, 20] # so the plots are bigger
 
+# the class for the first exmple section of the GFS
 class FunktionAnlegen:
     def __init__(self, _range=10, res=.1, noise_max=2):
         self.range = _range
@@ -17,21 +18,21 @@ class FunktionAnlegen:
         self.error_of_train_MSE = 0
         self.error_of_test_MSE = 0
         
-    def plot_daten(self):
+    def plot_daten(self): # show the training data in a scatter plot
         plt.scatter(*self.data)
         
-    def trainieren(self, n):
-        if n >= 309:
+    def trainieren(self, n): # train the model using the training data
+        if n >= 309: #numpy polyfit has a limit of 308 for the max degree, who knows why 308....
             print("n is too big")
             raise ValueError
         self.fkt = np.poly1d(np.polyfit(*self.data, deg=n))
         
-    def plot_fkt_ganzrat_fkt_n(self, n):     
+    def plot_fkt_ganzrat_fkt_n(self, n): # plot a graph of degree n additional to the scatter plot of the training data
         plt.scatter(*self.data)
         plt.plot(np.arange(-self.range, self.range, .001), [self.fkt(x) for x in np.arange(-self.range, self.range,.001)])
         plt.ylim([np.min(self.data)-10, np.max(self.data)+10])
     
-    def plot_test_der_fkt(self, n, size):
+    def plot_test_der_fkt(self, n, size): # plots a scatter plot of the training and the test set and the graph of deg. n. Furthermore is the Error shown in a histogram
         data_points = np.random.uniform(-self.range, self.range, size)
         self.test_set = np.array([data_points, [self.random_data(x) for x in data_points]])
         self.plot_fkt_ganzrat_fkt_n(n)
@@ -40,7 +41,7 @@ class FunktionAnlegen:
         plt.subplot(211)
         plt.xlim(0,20)
         error_of_test = np.array([np.absolute(self.test_set[1][i]-self.fkt(x)) for i, x in enumerate(self.test_set[0])])
-        self.error_of_test_MSE = np.square(error_of_test).mean()
+        self.error_of_test_MSE = np.square(error_of_test).mean() # MSE = Mean squared error
         _ = plt.hist(np.clip(error_of_test,0,self.noise_max*2), int(size/2), (0,self.noise_max*2), density=True, color='yellow', label='Fehler Testdaten: {}'.format(str(self.error_of_test_MSE)))
         plt.legend(fontsize=20)
         plt.subplot(212)
@@ -50,9 +51,10 @@ class FunktionAnlegen:
         _ = plt.hist(np.clip(error_of_train,0,self.noise_max*2), int(size/2), (0,self.noise_max*2), density=True, label='Fehler Trainingsdaten: {}'.format(str(self.error_of_train_MSE)))
         plt.legend(fontsize=20)
 
+# the class for example 2... a kNearestNeighbour Model
 class NearestNeighbour:
     def __init__(self, k, n):
-        self.k = k
+        self.k = k # the number of neigbours which will be used
         self.dots = np.array([np.array([np.random.rand(), np.random.rand()]) for _ in range(n)])
         self.color = lambda i:'blue' if i[0]*i[1]>.25 else 'red'
         self.c = np.array([self.color(i) for i in self.dots])
@@ -61,12 +63,12 @@ class NearestNeighbour:
         self.smallest_distance = None
         self.c_test = None
         self.nearest = None
-        self.most_often = lambda arr: arr[np.argmax(np.unique(arr,return_counts=True)[1])]
+        self.most_often = lambda arr: arr[np.argmax(np.unique(arr,return_counts=True)[1])] # used to get the color, because a average isn't working with strings
     
-    def plot_daten(self):
+    def plot_daten(self): #plot the dots, split by color
         plt.scatter([i[0] for i in self.dots], [i[1] for i in self.dots], c=self.c, s=150)
     
-    def test(self):    
+    def test(self): # plot the dots and one test sample with arrows to the nearest neighbours
         self.test_dot = np.array([np.random.rand(), np.random.rand()])
         self.smallest_distance = [1e99 for _ in range(self.k)]
         self.c_test = [None for _ in range(self.k)]
