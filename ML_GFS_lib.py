@@ -11,8 +11,8 @@ class FunktionAnlegen:
         self.range = _range
         self.noise_max = noise_max
         self.random_data = lambda x: x**2+np.random.rand()*noise_max
-        self.data = np.array([[x*res for x in range(int(-_range/res), int(_range/res))],
-                              [self.random_data(x*res) for x in range(int(-_range/res), int(_range/res))]])
+        self.data = np.array([np.arange(-_range,_range,res),
+                              [self.random_data(x) for x in np.arange(-_range,_range,res)]])
         self.fkt = None
         self.test_set = None
         self.error_of_train_MSE = 0
@@ -27,15 +27,15 @@ class FunktionAnlegen:
             raise ValueError
         self.fkt = np.poly1d(np.polyfit(*self.data, deg=n))
         
-    def plot_fkt_ganzrat_fkt_n(self, n): # plot a graph of degree n additional to the scatter plot of the training data
+    def plot_fkt_ganzrat_fkt_n(self): # plot a graph of degree n additional to the scatter plot of the training data
         plt.scatter(*self.data)
-        plt.plot(np.arange(-self.range, self.range, .001), [self.fkt(x) for x in np.arange(-self.range, self.range,.001)])
+        plt.plot(np.arange(-self.range, self.range, .001), [self.fkt(x) for x in np.arange(-self.range, self.range,.001)], c='orange')
         plt.ylim([np.min(self.data)-10, np.max(self.data)+10])
     
-    def plot_test_der_fkt(self, n, size): # plots a scatter plot of the training and the test set and the graph of deg. n. Furthermore is the Error shown in a histogram
+    def plot_test_der_fkt(self, size): # plots a scatter plot of the training and the test set and the graph of deg. n. Furthermore is the Error shown in a histogram
         data_points = np.random.uniform(-self.range, self.range, size)
         self.test_set = np.array([data_points, [self.random_data(x) for x in data_points]])
-        self.plot_fkt_ganzrat_fkt_n(n)
+        self.plot_fkt_ganzrat_fkt_n()
         plt.scatter(*self.test_set, c='yellow')
         plt.show()
         plt.subplot(211)
@@ -53,7 +53,7 @@ class FunktionAnlegen:
 
 # the class for example 2... a kNearestNeighbour Model
 class NearestNeighbour:
-    def __init__(self, k, n):
+    def __init__(self, k=1, n=200):
         self.k = k # the number of neigbours which will be used
         self.dots = np.array([np.array([np.random.rand(), np.random.rand()]) for _ in range(n)])
         self.color = lambda i:'blue' if i[0]*i[1]>.25 else 'red'
@@ -70,6 +70,7 @@ class NearestNeighbour:
     
     def test(self): # plot the dots and one test sample with arrows to the nearest neighbours
         self.test_dot = np.array([np.random.rand(), np.random.rand()])
+        supposed_color = self.color(self.test_dot)
         self.smallest_distance = [1e99 for _ in range(self.k)]
         self.c_test = [None for _ in range(self.k)]
         self.nearest = [None for _ in range(self.k)]
@@ -83,4 +84,4 @@ class NearestNeighbour:
         plt.scatter(*self.test_dot, c='yellow', s=200)
         for dot in self.nearest:
             plt.arrow(self.test_dot[0], self.test_dot[1], (self.dots[dot] - self.test_dot)[0], (self.dots[dot] - self.test_dot)[1])
-        plt.text(0, 1.1, 'x: {}\ny: {}\n|vector|: {}\ncolor: {}'.format(str(self.test_dot[0]), str(self.test_dot[1]), self.smallest_distance, self.most_often(self.c_test)), fontsize=20)
+        plt.text(0, 1.1, 'x: {}\ny: {}\n|vector|: {}\ncolor: {}\nsupposed color: {}'.format(str(self.test_dot[0]), str(self.test_dot[1]), self.smallest_distance, self.most_often(self.c_test), supposed_color), fontsize=20)
