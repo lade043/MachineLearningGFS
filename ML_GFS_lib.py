@@ -2,8 +2,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
+import warnings
 
 plt.rcParams['figure.figsize'] = [40, 20] # so the plots are bigger
+warnings.simplefilter('ignore', np.RankWarning) # for Function FunktionAnlegen.plot_mse() they are just annoying
 
 # the class for the first exmple section of the GFS
 class FunktionAnlegen:
@@ -32,7 +34,7 @@ class FunktionAnlegen:
         plt.plot(np.arange(-self.range, self.range, .001), [self.fkt(x) for x in np.arange(-self.range, self.range,.001)], c='orange')
         plt.ylim([np.min(self.data)-10, np.max(self.data)+10])
     
-    def plot_test_der_fkt(self, size): # plots a scatter plot of the training and the test set and the graph of deg. n. Furthermore is the Error shown in a histogram
+    def plot_test_der_fkt(self, size=67): # plots a scatter plot of the training and the test set and the graph of deg. n. Furthermore is the Error shown in a histogram
         data_points = np.random.uniform(-self.range, self.range, size)
         self.test_set = np.array([data_points, [self.random_data(x) for x in data_points]])
         self.plot_fkt_ganzrat_fkt_n()
@@ -50,6 +52,25 @@ class FunktionAnlegen:
         self.error_of_train_MSE = np.square(error_of_train).mean()
         _ = plt.hist(np.clip(error_of_train,0,self.noise_max*2), int(size/2), (0,self.noise_max*2), density=True, label='Fehler Trainingsdaten: {}'.format(str(self.error_of_train_MSE)))
         plt.legend(fontsize=20)
+    
+    def plot_mse(self, size=67):
+        data_points = np.random.uniform(-self.range, self.range, size)
+        self.test_set = np.array([data_points, [self.random_data(x) for x in data_points]])
+        errors_test = np.array([])
+        errors_train = np.array([])
+        for n in range(308):
+            self.trainieren(n)
+            error_of_test = np.array([np.absolute(self.test_set[1][i]-self.fkt(x)) for i, x in enumerate(self.test_set[0])])
+            self.error_of_test_MSE = np.square(error_of_test).mean() # MSE = Mean squared error
+            error_of_train = np.array([np.absolute(self.data[1][i]-self.fkt(x)) for i, x in enumerate(self.data[0])])
+            self.error_of_train_MSE = np.square(error_of_train).mean()
+            
+            errors_test = np.append(errors_test, self.error_of_test_MSE)
+            errors_train = np.append(errors_train, self.error_of_train_MSE)
+        plt.plot(errors_train, linewidth=3)
+        plt.plot(errors_test, c='yellow', linewidth=3)
+        plt.yscale('log')
+        
 
 # the class for example 2... a kNearestNeighbour Model
 class NearestNeighbour:
